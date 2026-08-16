@@ -17,6 +17,7 @@ class InstallState:
     # Step 4-5: disk / encryption
     disk: str | None = None
     partitioning_mode: str = "auto"  # "auto" | "manual"
+    accepted_wipe: bool = False
     encrypt: bool = False
     encryption_password: str = ""
 

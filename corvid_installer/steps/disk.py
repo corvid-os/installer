@@ -5,7 +5,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
 from corvid_installer.state import InstallState
-from corvid_installer.steps.base import InstallStep
+from corvid_installer.steps.base import InstallStep, Validation
 from corvid_installer.ui.page import build_step_page
 
 # Placeholder -- a real implementation reads from lsblk (M2+)
@@ -37,7 +37,8 @@ class DiskStep(InstallStep):
         manual_row.set_activatable_widget(manual_check)
         mode_group.add(manual_row)
 
-        auto_check.set_active(True)
+        auto_check.set_active(state.partitioning_mode == "auto")
+        manual_check.set_active(state.partitioning_mode == "manual")
 
         def on_mode_toggled(button, _pspec):
             if button.get_active():
@@ -59,9 +60,33 @@ class DiskStep(InstallStep):
         warning_row.add_css_class("warning")
         warning_group.add(warning_row)
 
+        accept_row = Adw.ActionRow(
+            title="I know this will erase everything on the drive, and I accept that I want to do it.",
+            subtitle="Click this row to accept.",
+            activatable=True,
+        )
+        accept_row.add_css_class("warning")
+        accept_check = Gtk.CheckButton()
+        accept_check.set_active(state.accepted_wipe)
+        accept_row.add_prefix(accept_check)
+        accept_row.set_activatable_widget(accept_check)
+
+        def on_accept_toggled(button, _pspec):
+            state.accepted_wipe = button.get_active()
+
+        accept_check.connect("notify::active", on_accept_toggled)
+        warning_group.add(accept_row)
+
         return build_step_page(
             icon_name="drive-harddisk-symbolic",
             title="Disk and partitioning",
             subtitle="Choose how Corvid OS should prepare the disk.",
             groups=[mode_group, disk_group, warning_group],
         )
+
+    def validate(self, state: InstallState) -> Validation:
+        if state.partitioning_mode == "auto" and not state.accepted_wipe:
+            return Validation.error(
+                "Check the box confirming you understand this will erase the disk."
+            )
+        return Validation.ok()
