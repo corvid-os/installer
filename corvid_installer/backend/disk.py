@@ -6,6 +6,8 @@ never calls anything here."""
 import subprocess
 from pathlib import Path
 
+from corvid_installer.backend.priv import as_root
+
 MOUNT_OPTS = "noatime,compress=zstd:1,space_cache=v2"
 
 # @snapshots is deliberately not created here -- see backend/snapper.py for
@@ -24,6 +26,7 @@ SUBVOLUME_MOUNTS = {
 
 
 def _run(cmd: list[str], dry_run: bool, log) -> None:
+    cmd = as_root(cmd)
     log(f"$ {' '.join(cmd)}")
     if dry_run:
         return

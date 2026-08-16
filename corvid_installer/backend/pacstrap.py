@@ -5,6 +5,8 @@ detection, etc. come later (roadmap M4/M5)."""
 
 import subprocess
 
+from corvid_installer.backend.priv import as_root
+
 BASE_PACKAGES = [
     "base", "base-devel", "linux-zen", "linux-zen-headers", "linux-firmware",
     "networkmanager", "sudo", "git", "reflector",
@@ -21,6 +23,7 @@ HYPRLAND_PACKAGES = ["hyprland", "kitty", "thunar", "xdg-desktop-portal-hyprland
 
 
 def _run(cmd: list[str], dry_run: bool, log) -> None:
+    cmd = as_root(cmd)
     log(f"$ {' '.join(cmd)}")
     if dry_run:
         return
@@ -37,8 +40,12 @@ def pacstrap(mount_point: str, packages: list[str], dry_run: bool = False, log=p
 
 
 def genfstab(mount_point: str, dry_run: bool = False, log=print) -> None:
-    log(f"$ genfstab -U {mount_point} >> {mount_point}/etc/fstab")
+    # Redirection has to happen *inside* the privileged process -- `sudo cmd
+    # >> file` still tries to open `file` as the invoking (non-root) user
+    # before exec'ing cmd, and fails the same way a plain open() would.
+    shell_cmd = f"genfstab -U {mount_point} >> {mount_point}/etc/fstab"
+    cmd = as_root(["sh", "-c", shell_cmd])
+    log(f"$ {shell_cmd}")
     if dry_run:
         return
-    with open(f"{mount_point}/etc/fstab", "a") as fstab_file:
-        subprocess.run(["genfstab", "-U", mount_point], check=True, stdout=fstab_file)
+    subprocess.run(cmd, check=True)

@@ -4,15 +4,30 @@ in installer.py, which logs a clear warning and proceeds unencrypted if the
 user asked for it. Don't silently pretend it happened."""
 
 import subprocess
-from pathlib import Path
+
+from corvid_installer.backend.priv import as_root
 
 
 def run_in_chroot(mount_point: str, command: list[str], dry_run: bool, log) -> None:
-    full = ["arch-chroot", mount_point, *command]
+    full = as_root(["arch-chroot", mount_point, *command])
     log(f"$ {' '.join(full)}")
     if dry_run:
         return
     subprocess.run(full, check=True)
+
+
+def _write_file(path: str, content: str, mode: str, dry_run: bool, log) -> None:
+    """Files under the target root (mount_point/etc/...) are root-owned like
+    any fresh pacstrap'd filesystem -- a plain Python open()/write_text()
+    from the (non-root) installer process fails with PermissionError. Route
+    writes through `sudo tee` instead, same reasoning as as_root() for
+    subprocess calls."""
+    verb = "appending to" if mode == "a" else "writing to"
+    log(f"$ ({verb} {path})")
+    if dry_run:
+        return
+    tee_args = ["tee", "-a", path] if mode == "a" else ["tee", path]
+    subprocess.run(as_root(tee_args), input=content, text=True, check=True, stdout=subprocess.DEVNULL)
 
 
 def set_timezone(mount_point: str, timezone: str, dry_run: bool, log) -> None:
@@ -21,22 +36,15 @@ def set_timezone(mount_point: str, timezone: str, dry_run: bool, log) -> None:
 
 
 def set_locale(mount_point: str, locale: str, dry_run: bool, log) -> None:
-    log(f"$ echo '{locale} UTF-8' >> {mount_point}/etc/locale.gen")
-    if not dry_run:
-        with open(f"{mount_point}/etc/locale.gen", "a") as locale_gen:
-            locale_gen.write(f"{locale} UTF-8\n")
+    _write_file(f"{mount_point}/etc/locale.gen", f"{locale} UTF-8\n", "a", dry_run, log)
     run_in_chroot(mount_point, ["locale-gen"], dry_run, log)
 
     lang = locale.split()[0] if " " in locale else locale
-    log(f"$ echo 'LANG={lang}' > {mount_point}/etc/locale.conf")
-    if not dry_run:
-        Path(f"{mount_point}/etc/locale.conf").write_text(f"LANG={lang}\n")
+    _write_file(f"{mount_point}/etc/locale.conf", f"LANG={lang}\n", "w", dry_run, log)
 
 
 def set_hostname(mount_point: str, hostname: str, dry_run: bool, log) -> None:
-    log(f"$ echo '{hostname}' > {mount_point}/etc/hostname")
-    if not dry_run:
-        Path(f"{mount_point}/etc/hostname").write_text(f"{hostname}\n")
+    _write_file(f"{mount_point}/etc/hostname", f"{hostname}\n", "w", dry_run, log)
 
 
 def create_user(mount_point: str, username: str, full_name: str, is_admin: bool, dry_run: bool, log) -> None:
@@ -59,7 +67,7 @@ def set_password(mount_point: str, username: str, password: str, dry_run: bool, 
     if dry_run:
         return
     subprocess.run(
-        ["arch-chroot", mount_point, "chpasswd"],
+        as_root(["arch-chroot", mount_point, "chpasswd"]),
         input=f"{username}:{password}\n", text=True, check=True,
     )
 
