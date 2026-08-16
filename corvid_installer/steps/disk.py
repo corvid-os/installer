@@ -4,7 +4,9 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
-from corvid_installer.backend.disk import list_disks
+import subprocess
+
+from corvid_installer.backend import disk as disk_backend
 from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep, Validation
@@ -44,6 +46,7 @@ class DiskStep(InstallStep):
         def on_mode_toggled(button, _pspec):
             if button.get_active():
                 state.partitioning_mode = "auto" if button is auto_check else "manual"
+                state.disk_prepared = False  # mode changed -- redo whichever action applies on Next
                 if self.request_revalidate:
                     self.request_revalidate()
 
@@ -51,7 +54,7 @@ class DiskStep(InstallStep):
         manual_check.connect("notify::active", on_mode_toggled)
 
         disk_group = Adw.PreferencesGroup(title=tr(state, "disk.disk_group"))
-        disks = list_disks() or FALLBACK_DISKS
+        disks = disk_backend.list_disks() or FALLBACK_DISKS
         disk_paths = [entry.split(" — ")[0] for entry in disks]
         model = Gtk.StringList.new(disks)
         disk_row = Adw.ComboRow(title=tr(state, "disk.disk_row"), model=model)
@@ -104,3 +107,27 @@ class DiskStep(InstallStep):
         if state.partitioning_mode == "auto" and not state.accepted_wipe:
             return Validation.error(tr(state, "disk.validation_error"))
         return Validation.ok()
+
+    def apply(self, state: InstallState) -> None:
+        """Deliberately acts immediately, on leaving this step, instead of
+        waiting for the final install step -- see state.disk_prepared. Auto
+        mode partitions right now; manual mode just opens GNOME Disks and
+        leaves the actual work to the user."""
+        if state.disk_prepared:
+            return
+
+        if state.partitioning_mode == "manual":
+            try:
+                subprocess.Popen(["gnome-disks"])
+            except FileNotFoundError:
+                pass  # not installed/available -- nothing more we can do here
+            state.disk_prepared = True
+            return
+
+        log_lines: list[str] = []
+        efi_part, root_part = disk_backend.partition_disk(state.disk, dry_run=state.dry_run, log=log_lines.append)
+        disk_backend.create_subvolumes(root_part, dry_run=state.dry_run, log=log_lines.append)
+        disk_backend.mount_layout(root_part, efi_part, dry_run=state.dry_run, log=log_lines.append)
+        state.disk_prepared = True
+        for line in log_lines:
+            print(line)

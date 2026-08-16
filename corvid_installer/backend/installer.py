@@ -18,6 +18,15 @@ class InstallStage:
 
 
 def _stage_partition(state: InstallState, log) -> None:
+    # Normally already done -- the Disk step (step 4) now partitions
+    # immediately (auto) or launches GNOME Disks (manual) as soon as you
+    # click Next, instead of waiting for this stage. See disk.py's apply()
+    # and state.disk_prepared. This stays as a fallback for anything that
+    # calls STAGES directly without going through the wizard (dry-run
+    # scripting, tests).
+    if state.disk_prepared:
+        log("Disk already prepared in step 4 -- skipping.")
+        return
     if state.partitioning_mode != "auto":
         log("Manual partitioning selected -- assuming the disk is already "
             "partitioned and mounted at /mnt (via GNOME Disks + manual mount).")

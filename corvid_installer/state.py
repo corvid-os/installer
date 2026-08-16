@@ -23,6 +23,12 @@ class InstallState:
     disk: str | None = None
     partitioning_mode: str = "auto"  # "auto" | "manual"
     accepted_wipe: bool = False
+    # Set once partitioning has actually happened (auto) or GNOME Disks has
+    # been launched (manual) -- see disk.py step. Deliberately as-soon-as-
+    # you-leave-this-step, not deferred to the final install step, so there's
+    # visible progress right away. Trade-off: Back from step 5+ no longer
+    # undoes disk changes the way it does for every other step.
+    disk_prepared: bool = False
     encrypt: bool = False
     encryption_password: str = ""
 
