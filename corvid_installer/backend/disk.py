@@ -85,11 +85,22 @@ def list_disks() -> list[str]:
         ).stdout
     except (FileNotFoundError, subprocess.CalledProcessError):
         return []
+    # lsblk reports floppy drives, zram, and other junk as TYPE=disk too --
+    # a QEMU machine has a virtual floppy controller by default even though
+    # nothing is attached to it, and it was silently picked as the "first"
+    # disk here, so the installer tried to partition /dev/fd0 instead of the
+    # real virtio disk. Filter those out by name, not just by TYPE.
+    _EXCLUDED_NAME_PREFIXES = ("fd", "sr", "loop", "zram")
+
     disks = []
     for line in out.splitlines():
         parts = line.split()
-        if len(parts) == 3 and parts[2] == "disk":
-            disks.append(f"{parts[0]} — {parts[1]}")
+        if len(parts) != 3 or parts[2] != "disk":
+            continue
+        name = Path(parts[0]).name
+        if name.startswith(_EXCLUDED_NAME_PREFIXES):
+            continue
+        disks.append(f"{parts[0]} — {parts[1]}")
     return disks
 
 
