@@ -4,6 +4,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
+from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
@@ -17,23 +18,23 @@ class FinishStep(InstallStep):
         group = Adw.PreferencesGroup()
 
         restart_row = Adw.ActionRow(
-            title="Restart now",
-            subtitle="Close the live session and boot into the newly installed Corvid OS",
+            title=tr(state, "finish.restart_title"),
+            subtitle=tr(state, "finish.restart_subtitle"),
             activatable=True,
         )
         restart_row.add_suffix(Gtk.Image.new_from_icon_name("system-reboot-symbolic"))
         group.add(restart_row)
 
         stay_row = Adw.ActionRow(
-            title="Stay in the live session",
-            subtitle="Keep testing before you restart",
+            title=tr(state, "finish.stay_title"),
+            subtitle=tr(state, "finish.stay_subtitle"),
             activatable=True,
         )
         group.add(stay_row)
 
         return build_step_page(
             icon_name="emblem-ok-symbolic",
-            title="Corvid OS is installed",
-            subtitle="(simulated — this skeleton doesn't actually restart anything)",
+            title=tr(state, "finish.title"),
+            subtitle=tr(state, "finish.subtitle"),
             groups=[group],
         )

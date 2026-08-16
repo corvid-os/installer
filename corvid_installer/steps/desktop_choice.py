@@ -4,8 +4,10 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk  # noqa: E402
+gi.require_version("GdkPixbuf", "2.0")
+from gi.repository import Adw, GdkPixbuf, Gtk  # noqa: E402
 
+from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
@@ -15,23 +17,54 @@ from corvid_installer.ui.page import build_step_page
 # Infrastructure and licensing: images don't get committed into `iso`).
 PICTURES_DIR = Path(__file__).resolve().parent.parent.parent / "pictures"
 
+BLUR_DOWNSCALE = 12  # bigger = blurrier (poor man's gaussian: shrink, then blow back up)
 
-def _choice_card(logo_path: Path, title: str, subtitle: str, screenshot_path: Path | None) -> Gtk.ToggleButton:
+
+def _load_sharp_and_blurred(path: Path) -> tuple[GdkPixbuf.Pixbuf, GdkPixbuf.Pixbuf] | None:
+    if not path.exists():
+        return None
+    sharp = GdkPixbuf.Pixbuf.new_from_file(str(path))
+    w, h = sharp.get_width(), sharp.get_height()
+    small = sharp.scale_simple(
+        max(1, w // BLUR_DOWNSCALE), max(1, h // BLUR_DOWNSCALE), GdkPixbuf.InterpType.BILINEAR
+    )
+    blurred = small.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+    return sharp, blurred
+
+
+def _choice_card(logo_path: Path, title: str, subtitle: str, screenshot_path: Path | None):
+    """Returns (button, set_selected) -- set_selected(bool) toggles the
+    background between blurred (not picked) and sharp (picked), when a
+    screenshot is available."""
     button = Gtk.ToggleButton()
     button.add_css_class("card")
     button.set_size_request(220, 170)
     button.set_overflow(Gtk.Overflow.HIDDEN)
 
     overlay = Gtk.Overlay()
+    set_selected = lambda _is_selected: None  # noqa: E731 -- default no-op, overridden below
 
-    if screenshot_path and screenshot_path.exists():
-        picture = Gtk.Picture.new_for_filename(str(screenshot_path))
-        picture.set_content_fit(Gtk.ContentFit.COVER)
-        overlay.set_child(picture)
+    pixbufs = _load_sharp_and_blurred(screenshot_path) if screenshot_path else None
+    if pixbufs:
+        sharp_pixbuf, blurred_pixbuf = pixbufs
+        photo_stack = Gtk.Stack(
+            transition_type=Gtk.StackTransitionType.CROSSFADE, transition_duration=300
+        )
+        blurred_picture = Gtk.Picture.new_for_pixbuf(blurred_pixbuf)
+        blurred_picture.set_content_fit(Gtk.ContentFit.COVER)
+        sharp_picture = Gtk.Picture.new_for_pixbuf(sharp_pixbuf)
+        sharp_picture.set_content_fit(Gtk.ContentFit.COVER)
+        photo_stack.add_named(blurred_picture, "blurred")
+        photo_stack.add_named(sharp_picture, "sharp")
+        photo_stack.set_visible_child_name("blurred")
+        overlay.set_child(photo_stack)
 
         scrim = Gtk.Box(hexpand=True, vexpand=True)
         scrim.add_css_class("choice-card-scrim")
         overlay.add_overlay(scrim)
+
+        def set_selected(is_selected: bool) -> None:  # noqa: F811
+            photo_stack.set_visible_child_name("sharp" if is_selected else "blurred")
     else:
         # No screenshot for this DE yet -- flat card, matches the rest of
         # the UI until a real one is added (design.md still has GNOME's TBD).
@@ -60,7 +93,7 @@ def _choice_card(logo_path: Path, title: str, subtitle: str, screenshot_path: Pa
 
     title_label = Gtk.Label(label=title)
     title_label.add_css_class("heading")
-    if screenshot_path and screenshot_path.exists():
+    if pixbufs:
         title_label.add_css_class("choice-card-on-photo")
     content.append(title_label)
 
@@ -72,7 +105,7 @@ def _choice_card(logo_path: Path, title: str, subtitle: str, screenshot_path: Pa
 
     overlay.add_overlay(content)
     button.set_child(overlay)
-    return button
+    return button, set_selected
 
 
 class DesktopChoiceStep(InstallStep):
@@ -80,27 +113,33 @@ class DesktopChoiceStep(InstallStep):
     title = "Desktop environment"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
-        gnome_btn = _choice_card(
+        gnome_btn, gnome_set_selected = _choice_card(
             PICTURES_DIR / "gnome-logo.svg",
             "GNOME",
-            "Consistent, stable, comfortable out of the box",
+            tr(state, "desktop_choice.gnome_subtitle"),
             screenshot_path=None,  # no GNOME screenshot yet -- flat card for now
         )
-        hypr_btn = _choice_card(
+        hypr_btn, hypr_set_selected = _choice_card(
             PICTURES_DIR / "hyprland-logo.svg",
             "Hyprland",
-            "Tiling, Noctalia Shell, fully customizable",
+            tr(state, "desktop_choice.hyprland_subtitle"),
             screenshot_path=PICTURES_DIR / "hyprland-screen.png",
         )
         hypr_btn.set_group(gnome_btn)
-        (gnome_btn if state.desktop_environment == "gnome" else hypr_btn).set_active(True)
+        gnome_selected = state.desktop_environment == "gnome"
+        gnome_btn.set_active(gnome_selected)
+        hypr_btn.set_active(not gnome_selected)
+        gnome_set_selected(gnome_selected)
+        hypr_set_selected(not gnome_selected)
 
-        def on_toggle(button, _pspec, de_id):
-            if button.get_active():
+        def on_toggle(button, _pspec, de_id, set_selected):
+            is_active = button.get_active()
+            set_selected(is_active)
+            if is_active:
                 state.desktop_environment = de_id
 
-        gnome_btn.connect("notify::active", on_toggle, "gnome")
-        hypr_btn.connect("notify::active", on_toggle, "hyprland")
+        gnome_btn.connect("notify::active", on_toggle, "gnome", gnome_set_selected)
+        hypr_btn.connect("notify::active", on_toggle, "hyprland", hypr_set_selected)
 
         cards_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -117,7 +156,7 @@ class DesktopChoiceStep(InstallStep):
 
         return build_step_page(
             icon_name="video-display-symbolic",
-            title="Choose a desktop environment",
-            subtitle="You can change this later by reinstalling.",
+            title=tr(state, "desktop_choice.title"),
+            subtitle=tr(state, "desktop_choice.subtitle"),
             groups=[group],
         )

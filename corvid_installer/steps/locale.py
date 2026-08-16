@@ -4,6 +4,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
+from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
@@ -18,21 +19,21 @@ class LocaleStep(InstallStep):
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Auto-detected",
-            description="Change these if IP-based detection got it wrong.",
+            title=tr(state, "locale.group_title"),
+            description=tr(state, "locale.group_desc"),
         )
 
         tz_model = Gtk.StringList.new(TIMEZONES)
-        tz_row = Adw.ComboRow(title="Timezone", model=tz_model)
+        tz_row = Adw.ComboRow(title=tr(state, "locale.timezone_row"), model=tz_model)
         group.add(tz_row)
 
         locale_model = Gtk.StringList.new(LOCALES)
-        locale_row = Adw.ComboRow(title="Locale (date/currency format)", model=locale_model)
+        locale_row = Adw.ComboRow(title=tr(state, "locale.locale_row"), model=locale_model)
         group.add(locale_row)
 
         return build_step_page(
             icon_name="preferences-system-time-symbolic",
-            title="Timezone and locale",
+            title=tr(state, "locale.title"),
             subtitle="",
             groups=[group],
         )

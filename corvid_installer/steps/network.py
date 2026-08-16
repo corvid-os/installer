@@ -4,6 +4,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
+from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
@@ -18,8 +19,8 @@ class NetworkStep(InstallStep):
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Wi-Fi networks",
-            description="An internet connection is needed to download packages.",
+            title=tr(state, "network.group_title"),
+            description=tr(state, "network.group_desc"),
         )
         for ssid in FAKE_NETWORKS:
             row = Adw.ActionRow(title=ssid, activatable=True)
@@ -35,8 +36,8 @@ class NetworkStep(InstallStep):
 
         skip_group = Adw.PreferencesGroup()
         skip_row = Adw.ActionRow(
-            title="I already have a wired connection",
-            subtitle="Skip this step",
+            title=tr(state, "network.skip_title"),
+            subtitle=tr(state, "network.skip_subtitle"),
             activatable=True,
         )
 
@@ -48,7 +49,7 @@ class NetworkStep(InstallStep):
 
         return build_step_page(
             icon_name="network-wireless-symbolic",
-            title="Connect to a network",
-            subtitle="Pick a Wi-Fi network from the list below.",
+            title=tr(state, "network.title"),
+            subtitle=tr(state, "network.subtitle"),
             groups=[group, skip_group],
         )

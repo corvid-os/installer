@@ -49,6 +49,11 @@ class InstallStep:
     # of only on click.
     request_revalidate: "callable | None" = None
 
+    # Also set by the window. Call this after changing state.language so
+    # the window rebuilds the current step (and its own chrome) in the new
+    # language, with a crossfade instead of the usual step-to-step slide.
+    request_language_refresh: "callable | None" = None
+
     def build_widget(self, state: "InstallState") -> Gtk.Widget:
         raise NotImplementedError
 

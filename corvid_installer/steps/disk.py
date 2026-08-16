@@ -4,6 +4,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
+from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep, Validation
 from corvid_installer.ui.page import build_step_page
@@ -17,11 +18,11 @@ class DiskStep(InstallStep):
     title = "Disk"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
-        mode_group = Adw.PreferencesGroup(title="Partitioning mode")
+        mode_group = Adw.PreferencesGroup(title=tr(state, "disk.mode_group"))
 
         auto_row = Adw.ActionRow(
-            title="Automatic",
-            subtitle="Whole disk, Btrfs with subvolumes, snapshots — recommended",
+            title=tr(state, "disk.auto_title"),
+            subtitle=tr(state, "disk.auto_subtitle"),
         )
         auto_check = Gtk.CheckButton()
         auto_row.add_prefix(auto_check)
@@ -29,8 +30,8 @@ class DiskStep(InstallStep):
         mode_group.add(auto_row)
 
         manual_row = Adw.ActionRow(
-            title="Manual",
-            subtitle="Opens GNOME Disks — for advanced users",
+            title=tr(state, "disk.manual_title"),
+            subtitle=tr(state, "disk.manual_subtitle"),
         )
         manual_check = Gtk.CheckButton(group=auto_check)
         manual_row.add_prefix(manual_check)
@@ -49,22 +50,22 @@ class DiskStep(InstallStep):
         auto_check.connect("notify::active", on_mode_toggled)
         manual_check.connect("notify::active", on_mode_toggled)
 
-        disk_group = Adw.PreferencesGroup(title="Target disk")
+        disk_group = Adw.PreferencesGroup(title=tr(state, "disk.disk_group"))
         model = Gtk.StringList.new(FAKE_DISKS)
-        disk_row = Adw.ComboRow(title="Disk", model=model)
+        disk_row = Adw.ComboRow(title=tr(state, "disk.disk_row"), model=model)
         disk_group.add(disk_row)
 
         warning_group = Adw.PreferencesGroup()
         warning_row = Adw.ActionRow(
-            title="⚠️ The selected disk will be completely wiped",
-            subtitle="This step doesn't make any changes yet — it's a UI preview",
+            title=tr(state, "disk.warning_title"),
+            subtitle=tr(state, "disk.warning_subtitle"),
         )
         warning_row.add_css_class("warning")
         warning_group.add(warning_row)
 
         accept_row = Adw.ActionRow(
-            title="I know this will erase everything on the drive, and I accept that I want to do it.",
-            subtitle="Click this row to accept.",
+            title=tr(state, "disk.accept_title"),
+            subtitle=tr(state, "disk.accept_subtitle"),
             activatable=True,
         )
         accept_row.add_css_class("warning")
@@ -83,14 +84,12 @@ class DiskStep(InstallStep):
 
         return build_step_page(
             icon_name="drive-harddisk-symbolic",
-            title="Disk and partitioning",
-            subtitle="Choose how Corvid OS should prepare the disk.",
+            title=tr(state, "disk.title"),
+            subtitle=tr(state, "disk.subtitle"),
             groups=[mode_group, disk_group, warning_group],
         )
 
     def validate(self, state: InstallState) -> Validation:
         if state.partitioning_mode == "auto" and not state.accepted_wipe:
-            return Validation.error(
-                "Check the box confirming you understand this will erase the disk."
-            )
+            return Validation.error(tr(state, "disk.validation_error"))
         return Validation.ok()
