@@ -105,6 +105,16 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
 
         step.apply(self.state)
 
+        # apply() can fail (e.g. disk.py's real partitioning work) and flag
+        # itself invalid rather than raising into this signal handler --
+        # re-check instead of assuming apply() always succeeds, so a failure
+        # blocks advancing and shows up via the Next button + validate().
+        post_apply = step.validate(self.state)
+        if post_apply.result != ValidationResult.OK:
+            print(f"[apply failed] {post_apply.message}")
+            self._render_current_step()  # rebuild so the step can show the error inline
+            return
+
         if self.current_index == len(self.steps) - 1:
             self.close()
             return

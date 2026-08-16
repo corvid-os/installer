@@ -20,6 +20,13 @@ class DiskStep(InstallStep):
     title = "Disk"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
+        error_group = None
+        if self._error:
+            error_group = Adw.PreferencesGroup()
+            error_row = Adw.ActionRow(title="Partitioning failed", subtitle=self._error)
+            error_row.add_css_class("error")
+            error_group.add(error_row)
+
         mode_group = Adw.PreferencesGroup(title=tr(state, "disk.mode_group"))
 
         auto_row = Adw.ActionRow(
@@ -96,14 +103,22 @@ class DiskStep(InstallStep):
         accept_check.connect("notify::active", on_accept_toggled)
         warning_group.add(accept_row)
 
+        groups = [mode_group, disk_group, warning_group]
+        if error_group is not None:
+            groups = [error_group, *groups]
+
         return build_step_page(
             icon_name="drive-harddisk-symbolic",
             title=tr(state, "disk.title"),
             subtitle=tr(state, "disk.subtitle"),
-            groups=[mode_group, disk_group, warning_group],
+            groups=groups,
         )
 
+    _error: str | None = None
+
     def validate(self, state: InstallState) -> Validation:
+        if self._error:
+            return Validation.error(f"Partitioning failed: {self._error}")
         if state.partitioning_mode == "auto" and not state.accepted_wipe:
             return Validation.error(tr(state, "disk.validation_error"))
         return Validation.ok()
@@ -115,6 +130,7 @@ class DiskStep(InstallStep):
         leaves the actual work to the user."""
         if state.disk_prepared:
             return
+        self._error = None
 
         if state.partitioning_mode == "manual":
             try:
@@ -125,9 +141,23 @@ class DiskStep(InstallStep):
             return
 
         log_lines: list[str] = []
-        efi_part, root_part = disk_backend.partition_disk(state.disk, dry_run=state.dry_run, log=log_lines.append)
-        disk_backend.create_subvolumes(root_part, dry_run=state.dry_run, log=log_lines.append)
-        disk_backend.mount_layout(root_part, efi_part, dry_run=state.dry_run, log=log_lines.append)
-        state.disk_prepared = True
-        for line in log_lines:
-            print(line)
+        try:
+            # Defensive: a previous attempt in this same session may have
+            # left /mnt mounted, which makes parted/mkfs fail with "device
+            # busy" -- ignore failure here, there's just nothing to unmount.
+            try:
+                disk_backend.unmount_all(dry_run=state.dry_run, log=log_lines.append)
+            except Exception:
+                pass
+
+            efi_part, root_part = disk_backend.partition_disk(
+                state.disk, dry_run=state.dry_run, log=log_lines.append
+            )
+            disk_backend.create_subvolumes(root_part, dry_run=state.dry_run, log=log_lines.append)
+            disk_backend.mount_layout(root_part, efi_part, dry_run=state.dry_run, log=log_lines.append)
+            state.disk_prepared = True
+        except Exception as exc:  # noqa: BLE001 -- surfaced via validate(), never swallowed silently
+            self._error = str(exc)
+        finally:
+            for line in log_lines:
+                print(line)
