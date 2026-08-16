@@ -43,6 +43,12 @@ class InstallStep:
     id: str = "step"
     title: str = "Step"
 
+    # Set by the window right before build_widget() is called. Steps whose
+    # validity can change from user interaction (e.g. a checkbox) call this
+    # to make the Next button re-evaluate sensitivity immediately, instead
+    # of only on click.
+    request_revalidate: "callable | None" = None
+
     def build_widget(self, state: "InstallState") -> Gtk.Widget:
         raise NotImplementedError
 

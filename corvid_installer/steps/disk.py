@@ -43,6 +43,8 @@ class DiskStep(InstallStep):
         def on_mode_toggled(button, _pspec):
             if button.get_active():
                 state.partitioning_mode = "auto" if button is auto_check else "manual"
+                if self.request_revalidate:
+                    self.request_revalidate()
 
         auto_check.connect("notify::active", on_mode_toggled)
         manual_check.connect("notify::active", on_mode_toggled)
@@ -73,6 +75,8 @@ class DiskStep(InstallStep):
 
         def on_accept_toggled(button, _pspec):
             state.accepted_wipe = button.get_active()
+            if self.request_revalidate:
+                self.request_revalidate()
 
         accept_check.connect("notify::active", on_accept_toggled)
         warning_group.add(accept_row)

@@ -14,6 +14,7 @@ def build_step_page(
     title: str,
     subtitle: str,
     groups: list[Adw.PreferencesGroup],
+    hero_widget: Gtk.Widget | None = None,
 ) -> Gtk.Widget:
     page = Adw.PreferencesPage()
 
@@ -25,10 +26,13 @@ def build_step_page(
         margin_top=12,
         margin_bottom=12,
     )
-    icon = Gtk.Image.new_from_icon_name(icon_name)
-    icon.set_pixel_size(48)
-    icon.add_css_class("accent")
-    header_box.append(icon)
+    if hero_widget is not None:
+        header_box.append(hero_widget)
+    else:
+        icon = Gtk.Image.new_from_icon_name(icon_name)
+        icon.set_pixel_size(48)
+        icon.add_css_class("accent")
+        header_box.append(icon)
 
     title_label = Gtk.Label(label=title)
     title_label.add_css_class("title-1")

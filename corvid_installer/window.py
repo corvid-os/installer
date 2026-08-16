@@ -57,6 +57,7 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
 
     def _render_current_step(self) -> None:
         step = self.steps[self.current_index]
+        step.request_revalidate = self._update_next_sensitivity
         widget = step.build_widget(self.state)
 
         # Only one step lives in the stack at a time -- drop the previous
@@ -72,6 +73,12 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
         is_last = self.current_index == len(self.steps) - 1
         self.next_button.set_label("Finish" if is_last else "Next")
         self.progress_label.set_label(f"Step {self.current_index + 1} of {len(self.steps)} — {step.title}")
+        self._update_next_sensitivity()
+
+    def _update_next_sensitivity(self) -> None:
+        step = self.steps[self.current_index]
+        validation = step.validate(self.state)
+        self.next_button.set_sensitive(validation.result == ValidationResult.OK)
 
     def _on_next(self, _button) -> None:
         step = self.steps[self.current_index]
