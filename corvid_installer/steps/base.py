@@ -1,5 +1,6 @@
-"""Wspólny interfejs kroku instalatora. Dodanie nowego kroku = nowy plik
-w tym katalogu + wpis na liście kroków w window.py. Zero zmian gdzie indziej."""
+"""Shared interface every install step implements. Adding a step means one
+new file in this package plus a line in window.py's step list -- nothing
+else changes."""
 
 from __future__ import annotations
 
@@ -36,11 +37,11 @@ class Validation:
 
 
 class InstallStep:
-    """Bazowa klasa kroku. W tym szkielecie (M1, UI-only) `validate()` zawsze
-    zwraca OK, a `apply()` jest no-opem — logika backendu przyjdzie później."""
+    """Base class for a step. In this skeleton (M1, UI only) validate()
+    always passes and apply() is a no-op -- the backend logic comes later."""
 
     id: str = "step"
-    title: str = "Krok"
+    title: str = "Step"
 
     def build_widget(self, state: "InstallState") -> Gtk.Widget:
         raise NotImplementedError
@@ -49,7 +50,7 @@ class InstallStep:
         return Validation.ok()
 
     def apply(self, state: "InstallState") -> None:
-        """Zapisuje wybory z widgetów do state. Nie dotyka dysku/systemu."""
+        """Writes the widgets' values into state. Never touches disk/system."""
         pass
 
     def is_visible(self, state: "InstallState") -> bool:

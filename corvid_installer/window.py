@@ -1,5 +1,5 @@
-"""Główne okno instalatora — wizard przechodzący przez ALL_STEPS. Trzyma
-InstallState centralnie, renderuje aktualny krok, obsługuje Wstecz/Dalej."""
+"""Main installer window -- a wizard walking through ALL_STEPS. Holds
+InstallState centrally, renders the current step, handles Back/Next."""
 
 import gi
 
@@ -16,16 +16,16 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.set_default_size(760, 620)
-        self.set_title("Zainstaluj Corvid OS")
+        self.set_title("Install Corvid OS")
 
         self.state = InstallState()
         self.steps = ALL_STEPS
         self.current_index = 0
 
-        self.back_button = Gtk.Button(label="Wstecz")
+        self.back_button = Gtk.Button(label="Back")
         self.back_button.connect("clicked", self._on_back)
 
-        self.next_button = Gtk.Button(label="Dalej")
+        self.next_button = Gtk.Button(label="Next")
         self.next_button.add_css_class("suggested-action")
         self.next_button.connect("clicked", self._on_next)
 
@@ -59,8 +59,8 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
         step = self.steps[self.current_index]
         widget = step.build_widget(self.state)
 
-        # Trzymamy tylko jeden krok w stacku naraz — usuwamy poprzedni,
-        # żeby nie zbierać starych widgetów w pamięci.
+        # Only one step lives in the stack at a time -- drop the previous
+        # one so we don't accumulate old widgets.
         if self._current_step_widget is not None:
             self.content_stack.remove(self._current_step_widget)
         self._current_step_widget = widget
@@ -70,17 +70,17 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
 
         self.back_button.set_sensitive(self.current_index > 0)
         is_last = self.current_index == len(self.steps) - 1
-        self.next_button.set_label("Zakończ" if is_last else "Dalej")
-        self.progress_label.set_label(f"Krok {self.current_index + 1} z {len(self.steps)} — {step.title}")
+        self.next_button.set_label("Finish" if is_last else "Next")
+        self.progress_label.set_label(f"Step {self.current_index + 1} of {len(self.steps)} — {step.title}")
 
     def _on_next(self, _button) -> None:
         step = self.steps[self.current_index]
         validation = step.validate(self.state)
         if validation.result != ValidationResult.OK:
-            toast = Adw.Toast.new(validation.message or "Popraw dane przed kontynuowaniem")
-            # ToolbarView nie ma wbudowanego ToastOverlay w tym szkielecie —
-            # w pełnej wersji owinąć content w Adw.ToastOverlay.
-            print(f"[walidacja] {toast.get_title()}")
+            toast = Adw.Toast.new(validation.message or "Fix the highlighted fields before continuing")
+            # This skeleton's ToolbarView has no ToastOverlay wired in yet --
+            # a full version should wrap the content in Adw.ToastOverlay.
+            print(f"[validation] {toast.get_title()}")
             return
 
         step.apply(self.state)

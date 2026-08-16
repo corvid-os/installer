@@ -17,19 +17,19 @@ def _spin_row(title: str, value: int, upper: int) -> tuple[Adw.SpinRow, Gtk.Adju
 
 class SnapshotsStep(InstallStep):
     id = "snapshots"
-    title = "Snapshoty"
+    title = "Snapshots"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Harmonogram snapshotów (snapper)",
-            description="Automatyczne snapshoty Btrfs — dodatkowo przed/po każdej "
-            "aktualizacji pakietów (snap-pac), niezależnie od harmonogramu poniżej.",
+            title="Snapshot schedule (snapper)",
+            description="Automatic Btrfs snapshots — plus one before and after "
+            "every package update (snap-pac), regardless of the schedule below.",
         )
 
-        hourly_row, hourly_adj = _spin_row("Co godzinę — ile trzymać", state.snapshots_hourly, 24)
-        daily_row, daily_adj = _spin_row("Codziennie — ile trzymać", state.snapshots_daily, 30)
-        weekly_row, weekly_adj = _spin_row("Co tydzień — ile trzymać", state.snapshots_weekly, 12)
-        monthly_row, monthly_adj = _spin_row("Co miesiąc — ile trzymać", state.snapshots_monthly, 24)
+        hourly_row, hourly_adj = _spin_row("Hourly — how many to keep", state.snapshots_hourly, 24)
+        daily_row, daily_adj = _spin_row("Daily — how many to keep", state.snapshots_daily, 30)
+        weekly_row, weekly_adj = _spin_row("Weekly — how many to keep", state.snapshots_weekly, 12)
+        monthly_row, monthly_adj = _spin_row("Monthly — how many to keep", state.snapshots_monthly, 24)
 
         for row in (hourly_row, daily_row, weekly_row, monthly_row):
             group.add(row)
@@ -41,7 +41,7 @@ class SnapshotsStep(InstallStep):
 
         return build_step_page(
             icon_name="edit-undo-symbolic",
-            title="Snapshoty",
-            subtitle="Domyślne wartości są sensowne — zmień tylko jeśli wiesz czego chcesz.",
+            title="Snapshots",
+            subtitle="The defaults are sensible — only change these if you know what you want.",
             groups=[group],
         )

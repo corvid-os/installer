@@ -12,37 +12,37 @@ PROFILE_LABELS = {
     "gaming": "Gaming",
     "dev": "Dev",
     "both": "Gaming + Dev",
-    "minimal": "Minimalny",
+    "minimal": "Minimal",
 }
 
 
 class SummaryStep(InstallStep):
     id = "summary"
-    title = "Podsumowanie"
+    title = "Summary"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Sprawdź wybory przed instalacją",
-            description="To ostatni moment żeby cofnąć się i coś zmienić — "
-            "kolejny krok zaczyna zapisywać zmiany na dysku.",
+            title="Review your choices before installing",
+            description="This is the last chance to go back and change something — "
+            "the next step starts writing changes to disk.",
         )
 
         rows = [
-            ("Język", state.language),
-            ("Klawiatura", state.keyboard_layout),
-            ("Sieć", state.wifi_ssid or ("połączono" if state.network_connected else "brak")),
-            ("Dysk", state.disk or "(auto — pierwszy wykryty)"),
-            ("Tryb partycjonowania", state.partitioning_mode),
-            ("Szyfrowanie", "włączone" if state.encrypt else "wyłączone"),
-            ("Strefa czasowa", state.timezone),
-            ("Środowisko graficzne", state.desktop_environment.upper()),
-            ("Profil", PROFILE_LABELS.get(state.profile, state.profile)),
-            ("Użytkownik", state.username or "(nie podano)"),
-            ("Administrator", "tak" if state.is_admin else "nie"),
+            ("Language", state.language),
+            ("Keyboard", state.keyboard_layout),
+            ("Network", state.wifi_ssid or ("connected" if state.network_connected else "none")),
+            ("Disk", state.disk or "(auto — first one detected)"),
+            ("Partitioning mode", state.partitioning_mode),
+            ("Encryption", "enabled" if state.encrypt else "disabled"),
+            ("Timezone", state.timezone),
+            ("Desktop environment", state.desktop_environment.upper()),
+            ("Profile", PROFILE_LABELS.get(state.profile, state.profile)),
+            ("User", state.username or "(not set)"),
+            ("Administrator", "yes" if state.is_admin else "no"),
             (
-                "Snapshoty",
-                f"godzinowe: {state.snapshots_hourly}, dzienne: {state.snapshots_daily}, "
-                f"tygodniowe: {state.snapshots_weekly}, miesięczne: {state.snapshots_monthly}",
+                "Snapshots",
+                f"hourly: {state.snapshots_hourly}, daily: {state.snapshots_daily}, "
+                f"weekly: {state.snapshots_weekly}, monthly: {state.snapshots_monthly}",
             ),
         ]
 
@@ -52,7 +52,7 @@ class SummaryStep(InstallStep):
 
         return build_step_page(
             icon_name="checkbox-checked-symbolic",
-            title="Podsumowanie",
+            title="Summary",
             subtitle="",
             groups=[group],
         )

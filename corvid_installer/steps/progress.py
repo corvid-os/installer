@@ -1,5 +1,5 @@
-"""Krok instalacji. W tym szkielecie tylko SYMULUJE postęp (GLib.timeout) —
-prawdziwe wywołania pacstrap/genfstab/chroot/snapper przyjdą wraz z backendem."""
+"""Install step. In this skeleton it only SIMULATES progress (GLib.timeout) --
+real pacstrap/genfstab/chroot/snapper calls arrive with the backend."""
 
 import gi
 
@@ -12,20 +12,20 @@ from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
 
 FAKE_STAGES = [
-    "Partycjonowanie dysku…",
-    "Formatowanie subwolumenów Btrfs…",
-    "pacstrap — instalacja pakietów bazowych…",
-    "genfstab — zapis fstab…",
-    "Konfiguracja w chroot (locale, użytkownik, bootloader)…",
-    "Instalacja GRUB…",
-    "Inicjalizacja snapper…",
-    "Sprzątanie i finalizacja…",
+    "Partitioning the disk…",
+    "Formatting Btrfs subvolumes…",
+    "pacstrap — installing base packages…",
+    "genfstab — writing fstab…",
+    "Configuring in chroot (locale, user, bootloader)…",
+    "Installing GRUB…",
+    "Initializing snapper…",
+    "Cleaning up…",
 ]
 
 
 class ProgressStep(InstallStep):
     id = "progress"
-    title = "Instalacja"
+    title = "Installing"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup()
@@ -44,13 +44,13 @@ class ProgressStep(InstallStep):
         group.add(box)
 
         self._stage_index = 0
-        self._append_log("(symulacja — backend jeszcze niezaimplementowany)")
+        self._append_log("(simulated — backend not implemented yet)")
         GLib.timeout_add(600, self._advance)
 
         return build_step_page(
             icon_name="emblem-system-symbolic",
-            title="Trwa instalacja",
-            subtitle="Nie wyłączaj komputera.",
+            title="Installing",
+            subtitle="Don't turn off your computer.",
             groups=[group],
         )
 
@@ -61,8 +61,8 @@ class ProgressStep(InstallStep):
     def _advance(self) -> bool:
         if self._stage_index >= len(FAKE_STAGES):
             self._progress_bar.set_fraction(1.0)
-            self._progress_bar.set_text("Gotowe")
-            self._append_log("Instalacja (symulowana) zakończona.")
+            self._progress_bar.set_text("Done")
+            self._append_log("Install (simulated) complete.")
             return GLib.SOURCE_REMOVE
 
         stage = FAKE_STAGES[self._stage_index]

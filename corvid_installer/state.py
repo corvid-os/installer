@@ -1,43 +1,43 @@
-"""Centralny stan wyborów użytkownika. Jedno źródło prawdy dla kroków UI
-i (docelowo) dla backendu wykonującego instalację."""
+"""Central state for every choice made in the wizard. One source of truth
+for the UI steps and, eventually, for the backend that runs the install."""
 
 from dataclasses import dataclass
 
 
 @dataclass
 class InstallState:
-    # Krok 1-2: język / klawiatura
-    language: str = "Polski"
-    keyboard_layout: str = "pl"
+    # Step 1-2: language / keyboard
+    language: str = "English"
+    keyboard_layout: str = "us"
 
-    # Krok 3: sieć
+    # Step 3: network
     wifi_ssid: str | None = None
     network_connected: bool = False
 
-    # Krok 4-5: dysk / szyfrowanie
+    # Step 4-5: disk / encryption
     disk: str | None = None
     partitioning_mode: str = "auto"  # "auto" | "manual"
     encrypt: bool = False
     encryption_password: str = ""
 
-    # Krok 6: lokalizacja
-    timezone: str = "Europe/Warsaw"
-    locale: str = "pl_PL.UTF-8"
+    # Step 6: locale
+    timezone: str = "UTC"
+    locale: str = "en_US.UTF-8"
 
-    # Krok 7-8: środowisko / profil
+    # Step 7-8: desktop environment / profile
     desktop_environment: str = "gnome"  # "gnome" | "hyprland"
     profile: str = "minimal"  # "gaming" | "dev" | "both" | "minimal"
 
-    # Krok 9: konto
+    # Step 9: account
     full_name: str = ""
     username: str = ""
     password: str = ""
     is_admin: bool = True
 
-    # Krok 10: bootloader
+    # Step 10: bootloader
     efi_disk: str | None = None
 
-    # Krok 11: snapshoty (harmonogram snappera, edytowalny)
+    # Step 11: snapshots (snapper schedule, editable)
     snapshots_hourly: int = 5
     snapshots_daily: int = 7
     snapshots_weekly: int = 4

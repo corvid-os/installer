@@ -20,18 +20,18 @@ class BootloaderStep(InstallStep):
 
         bootloader_row = Adw.ActionRow(
             title="GRUB",
-            subtitle="Jedyna opcja na start — integruje się z grub-btrfs (snapshoty w menu boot)",
+            subtitle="The only option for now — integrates with grub-btrfs (snapshots in the boot menu)",
         )
         bootloader_row.add_prefix(Gtk.Image.new_from_icon_name("system-reboot-symbolic"))
         group.add(bootloader_row)
 
         efi_model = Gtk.StringList.new(FAKE_EFI_PARTITIONS)
-        efi_row = Adw.ComboRow(title="Partycja EFI", model=efi_model)
+        efi_row = Adw.ComboRow(title="EFI partition", model=efi_model)
         group.add(efi_row)
 
         return build_step_page(
             icon_name="system-reboot-symbolic",
             title="Bootloader",
-            subtitle="Wykryto tryb UEFI.",
+            subtitle="UEFI mode detected.",
             groups=[group],
         )

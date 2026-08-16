@@ -11,25 +11,25 @@ from corvid_installer.ui.page import build_step_page
 
 class EncryptionStep(InstallStep):
     id = "encryption"
-    title = "Szyfrowanie"
+    title = "Encryption"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Szyfrowanie dysku (opcjonalne)",
-            description="LUKS2 na partycji root. Hasło osobne od hasła konta użytkownika.",
+            title="Disk encryption (optional)",
+            description="LUKS2 on the root partition. Separate from your account password.",
         )
 
         switch_row = Adw.SwitchRow(
-            title="Włącz szyfrowanie dysku",
+            title="Enable disk encryption",
             active=state.encrypt,
         )
         group.add(switch_row)
 
-        password_row = Adw.PasswordEntryRow(title="Hasło szyfrowania")
+        password_row = Adw.PasswordEntryRow(title="Encryption password")
         password_row.set_sensitive(state.encrypt)
         group.add(password_row)
 
-        confirm_row = Adw.PasswordEntryRow(title="Potwierdź hasło")
+        confirm_row = Adw.PasswordEntryRow(title="Confirm password")
         confirm_row.set_sensitive(state.encrypt)
         group.add(confirm_row)
 
@@ -42,7 +42,7 @@ class EncryptionStep(InstallStep):
 
         return build_step_page(
             icon_name="channel-secure-symbolic",
-            title="Szyfrowanie dysku",
-            subtitle="Krok opcjonalny — możesz go pominąć.",
+            title="Disk encryption",
+            subtitle="Optional step — feel free to skip it.",
             groups=[group],
         )

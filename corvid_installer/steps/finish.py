@@ -11,29 +11,29 @@ from corvid_installer.ui.page import build_step_page
 
 class FinishStep(InstallStep):
     id = "finish"
-    title = "Zakończenie"
+    title = "Finish"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup()
 
         restart_row = Adw.ActionRow(
-            title="Uruchom ponownie",
-            subtitle="Zamknij live session i uruchom nowo zainstalowany Corvid OS",
+            title="Restart now",
+            subtitle="Close the live session and boot into the newly installed Corvid OS",
             activatable=True,
         )
         restart_row.add_suffix(Gtk.Image.new_from_icon_name("system-reboot-symbolic"))
         group.add(restart_row)
 
         stay_row = Adw.ActionRow(
-            title="Zostań w sesji live",
-            subtitle="Kontynuuj testowanie zanim zrestartujesz",
+            title="Stay in the live session",
+            subtitle="Keep testing before you restart",
             activatable=True,
         )
         group.add(stay_row)
 
         return build_step_page(
             icon_name="emblem-ok-symbolic",
-            title="Corvid OS jest zainstalowany",
-            subtitle="(symulacja — w tym szkielecie żaden restart faktycznie nie następuje)",
+            title="Corvid OS is installed",
+            subtitle="(simulated — this skeleton doesn't actually restart anything)",
             groups=[group],
         )

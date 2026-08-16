@@ -8,20 +8,20 @@ from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep
 from corvid_installer.ui.page import build_step_page
 
-# Placeholder — realna implementacja czyta z lsblk (M2+)
+# Placeholder -- a real implementation reads from lsblk (M2+)
 FAKE_DISKS = ["/dev/nvme0n1 — 1 TB", "/dev/sda — 512 GB"]
 
 
 class DiskStep(InstallStep):
     id = "disk"
-    title = "Dysk"
+    title = "Disk"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
-        mode_group = Adw.PreferencesGroup(title="Tryb partycjonowania")
+        mode_group = Adw.PreferencesGroup(title="Partitioning mode")
 
         auto_row = Adw.ActionRow(
-            title="Automatyczny",
-            subtitle="Cały dysk, Btrfs + subwolumeny, snapshoty — zalecane",
+            title="Automatic",
+            subtitle="Whole disk, Btrfs with subvolumes, snapshots — recommended",
         )
         auto_check = Gtk.CheckButton()
         auto_row.add_prefix(auto_check)
@@ -29,8 +29,8 @@ class DiskStep(InstallStep):
         mode_group.add(auto_row)
 
         manual_row = Adw.ActionRow(
-            title="Ręczny",
-            subtitle="Otwiera GNOME Disks — dla zaawansowanych",
+            title="Manual",
+            subtitle="Opens GNOME Disks — for advanced users",
         )
         manual_check = Gtk.CheckButton(group=auto_check)
         manual_row.add_prefix(manual_check)
@@ -46,22 +46,22 @@ class DiskStep(InstallStep):
         auto_check.connect("notify::active", on_mode_toggled)
         manual_check.connect("notify::active", on_mode_toggled)
 
-        disk_group = Adw.PreferencesGroup(title="Docelowy dysk")
+        disk_group = Adw.PreferencesGroup(title="Target disk")
         model = Gtk.StringList.new(FAKE_DISKS)
-        disk_row = Adw.ComboRow(title="Dysk", model=model)
+        disk_row = Adw.ComboRow(title="Disk", model=model)
         disk_group.add(disk_row)
 
         warning_group = Adw.PreferencesGroup()
         warning_row = Adw.ActionRow(
-            title="⚠️ Wybrany dysk zostanie całkowicie wyczyszczony",
-            subtitle="Ten krok nie wykonuje jeszcze żadnych zmian — to podgląd UI",
+            title="⚠️ The selected disk will be completely wiped",
+            subtitle="This step doesn't make any changes yet — it's a UI preview",
         )
         warning_row.add_css_class("warning")
         warning_group.add(warning_row)
 
         return build_step_page(
             icon_name="drive-harddisk-symbolic",
-            title="Dysk i partycjonowanie",
-            subtitle="Wybierz jak Corvid OS ma przygotować dysk.",
+            title="Disk and partitioning",
+            subtitle="Choose how Corvid OS should prepare the disk.",
             groups=[mode_group, disk_group, warning_group],
         )

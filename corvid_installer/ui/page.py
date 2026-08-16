@@ -1,6 +1,6 @@
-"""Wspólny szkielet strony kroku — nagłówek (ikona/tytuł/podtytuł) +
-Adw.PreferencesGroup(y) przekazane przez konkretny krok. Trzyma wygląd
-wszystkich kroków spójny bez powtarzania tego samego kodu w każdym z nich."""
+"""Shared page skeleton for a step -- a header (icon/title/subtitle) plus
+whatever Adw.PreferencesGroups the step passes in. Keeps every step's look
+consistent without repeating the same layout code in each one."""
 
 import gi
 

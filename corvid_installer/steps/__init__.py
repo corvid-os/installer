@@ -1,5 +1,5 @@
-"""Lista kroków instalatora w kolejności. Dodanie nowego kroku = nowy plik
-w tym pakiecie + wpis tutaj. Zero zmian w window.py."""
+"""Ordered list of install steps. Adding a step means one new file in this
+package plus an entry here -- no changes needed in window.py."""
 
 from corvid_installer.steps.bootloader import BootloaderStep
 from corvid_installer.steps.desktop_choice import DesktopChoiceStep

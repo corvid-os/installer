@@ -11,17 +11,17 @@ from corvid_installer.ui.page import build_step_page
 PROFILES = [
     ("gaming", "Gaming", "🎮", "Steam, Proton-GE, gamemode, mangohud"),
     ("dev", "Dev", "💻", "Podman, VSCodium, fish + starship, mise"),
-    ("both", "Oba", "🚀", "Gaming + Dev razem"),
-    ("minimal", "Minimalny", "🪶", "Tylko podstawa — reszta do doinstalowania"),
+    ("both", "Both", "🚀", "Gaming and Dev together"),
+    ("minimal", "Minimal", "🪶", "Just the base — add the rest yourself"),
 ]
 
 
 class ProfileChoiceStep(InstallStep):
     id = "profile_choice"
-    title = "Profil"
+    title = "Profile"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
-        group = Adw.PreferencesGroup(title="Wybierz profil instalacji")
+        group = Adw.PreferencesGroup(title="Choose an install profile")
 
         first_check = None
         for profile_id, name, emoji, subtitle in PROFILES:
@@ -42,7 +42,7 @@ class ProfileChoiceStep(InstallStep):
 
         return build_step_page(
             icon_name="applications-games-symbolic",
-            title="Wybierz profil",
-            subtitle="Determinuje domyślny zestaw zainstalowanych aplikacji.",
+            title="Choose a profile",
+            subtitle="Determines the default set of installed applications.",
             groups=[group],
         )

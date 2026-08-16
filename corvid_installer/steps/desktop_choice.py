@@ -33,18 +33,18 @@ def _choice_card(icon_name: str, title: str, subtitle: str) -> Gtk.ToggleButton:
 
 class DesktopChoiceStep(InstallStep):
     id = "desktop_choice"
-    title = "Środowisko graficzne"
+    title = "Desktop environment"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         gnome_btn = _choice_card(
             "video-display-symbolic",
             "GNOME",
-            "Spójne, stabilne, wygodne z pudełka",
+            "Consistent, stable, comfortable out of the box",
         )
         hypr_btn = _choice_card(
             "video-display-symbolic",
             "Hyprland",
-            "Tiling, Noctalia Shell, w pełni personalizowalny",
+            "Tiling, Noctalia Shell, fully customizable",
         )
         hypr_btn.set_group(gnome_btn)
         (gnome_btn if state.desktop_environment == "gnome" else hypr_btn).set_active(True)
@@ -71,7 +71,7 @@ class DesktopChoiceStep(InstallStep):
 
         return build_step_page(
             icon_name="video-display-symbolic",
-            title="Wybierz środowisko graficzne",
-            subtitle="Możesz to zmienić przeinstalowując system później.",
+            title="Choose a desktop environment",
+            subtitle="You can change this later by reinstalling.",
             groups=[group],
         )

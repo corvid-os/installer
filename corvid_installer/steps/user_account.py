@@ -11,30 +11,30 @@ from corvid_installer.ui.page import build_step_page
 
 class UserAccountStep(InstallStep):
     id = "user_account"
-    title = "Konto użytkownika"
+    title = "User account"
 
     def build_widget(self, state: InstallState) -> Gtk.Widget:
         group = Adw.PreferencesGroup(
-            title="Utwórz konto",
-            description="Tylko pierwsze konto — resztą (zmiana hasła, kolejni "
-            "użytkownicy) zajmiesz się później w Ustawieniach systemu.",
+            title="Create an account",
+            description="Just the first account — password changes and "
+            "additional users are handled later in system Settings.",
         )
 
-        full_name_row = Adw.EntryRow(title="Pełna nazwa")
+        full_name_row = Adw.EntryRow(title="Full name")
         group.add(full_name_row)
 
-        username_row = Adw.EntryRow(title="Nazwa użytkownika")
+        username_row = Adw.EntryRow(title="Username")
         group.add(username_row)
 
-        password_row = Adw.PasswordEntryRow(title="Hasło")
+        password_row = Adw.PasswordEntryRow(title="Password")
         group.add(password_row)
 
-        confirm_row = Adw.PasswordEntryRow(title="Potwierdź hasło")
+        confirm_row = Adw.PasswordEntryRow(title="Confirm password")
         group.add(confirm_row)
 
         admin_row = Adw.SwitchRow(
-            title="To konto może administrować systemem",
-            subtitle="Dostęp do sudo (grupa wheel)",
+            title="This account can administer the system",
+            subtitle="Grants sudo access (wheel group)",
             active=state.is_admin,
         )
         group.add(admin_row)
@@ -46,7 +46,7 @@ class UserAccountStep(InstallStep):
 
         return build_step_page(
             icon_name="avatar-default-symbolic",
-            title="Konto użytkownika",
+            title="User account",
             subtitle="",
             groups=[group],
         )
