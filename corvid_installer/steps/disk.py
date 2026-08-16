@@ -4,13 +4,13 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk  # noqa: E402
 
+from corvid_installer.backend.disk import list_disks
 from corvid_installer.i18n import tr
 from corvid_installer.state import InstallState
 from corvid_installer.steps.base import InstallStep, Validation
 from corvid_installer.ui.page import build_step_page
 
-# Placeholder -- a real implementation reads from lsblk (M2+)
-FAKE_DISKS = ["/dev/nvme0n1 — 1 TB", "/dev/sda — 512 GB"]
+FALLBACK_DISKS = ["/dev/vda — 20G"]  # shown only if lsblk isn't available at all
 
 
 class DiskStep(InstallStep):
@@ -51,8 +51,19 @@ class DiskStep(InstallStep):
         manual_check.connect("notify::active", on_mode_toggled)
 
         disk_group = Adw.PreferencesGroup(title=tr(state, "disk.disk_group"))
-        model = Gtk.StringList.new(FAKE_DISKS)
+        disks = list_disks() or FALLBACK_DISKS
+        disk_paths = [entry.split(" — ")[0] for entry in disks]
+        model = Gtk.StringList.new(disks)
         disk_row = Adw.ComboRow(title=tr(state, "disk.disk_row"), model=model)
+        if state.disk in disk_paths:
+            disk_row.set_selected(disk_paths.index(state.disk))
+        else:
+            state.disk = disk_paths[0]
+
+        def on_disk_selected(combo_row, _pspec):
+            state.disk = disk_paths[combo_row.get_selected()]
+
+        disk_row.connect("notify::selected", on_disk_selected)
         disk_group.add(disk_row)
 
         warning_group = Adw.PreferencesGroup()

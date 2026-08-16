@@ -6,6 +6,11 @@ from dataclasses import dataclass
 
 @dataclass
 class InstallState:
+    # Safety: real disk/pacstrap/chroot commands only run when this is
+    # False. Defaults to True (simulate + log only) -- set to False via
+    # the --execute CLI flag, never by default. See main.py.
+    dry_run: bool = True
+
     # Step 1-2: language / keyboard
     language: str = "English"
     keyboard_layout: str = "us"

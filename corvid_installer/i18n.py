@@ -253,16 +253,22 @@ STRINGS: dict[str, dict[str, str]] = {
         "en": "Wait for the installation to finish.",
         "pl": "Poczekaj, aż instalacja się zakończy.",
     },
-    "progress.stage.partition": {"en": "Partitioning the disk…", "pl": "Partycjonowanie dysku…"},
-    "progress.stage.format": {"en": "Formatting Btrfs subvolumes…", "pl": "Formatowanie subwolumenów Btrfs…"},
+    "progress.stage.partition": {
+        "en": "Partitioning the disk and setting up Btrfs…",
+        "pl": "Partycjonowanie dysku i konfiguracja Btrfs…",
+    },
     "progress.stage.pacstrap": {
         "en": "pacstrap — installing base packages…",
         "pl": "pacstrap — instalacja pakietów bazowych…",
     },
     "progress.stage.genfstab": {"en": "genfstab — writing fstab…", "pl": "genfstab — zapis fstab…"},
     "progress.stage.chroot": {
-        "en": "Configuring in chroot (locale, user, bootloader)…",
-        "pl": "Konfiguracja w chroot (lokalizacja, użytkownik, bootloader)…",
+        "en": "Configuring in chroot (locale, user, network)…",
+        "pl": "Konfiguracja w chroot (lokalizacja, użytkownik, sieć)…",
+    },
+    "progress.stage.desktop": {
+        "en": "Setting up the desktop environment…",
+        "pl": "Konfiguracja środowiska graficznego…",
     },
     "progress.stage.grub": {"en": "Installing GRUB…", "pl": "Instalacja GRUB…"},
     "progress.stage.snapper": {"en": "Initializing snapper…", "pl": "Inicjalizacja snapper…"},

@@ -25,10 +25,24 @@ class LocaleStep(InstallStep):
 
         tz_model = Gtk.StringList.new(TIMEZONES)
         tz_row = Adw.ComboRow(title=tr(state, "locale.timezone_row"), model=tz_model)
+        if state.timezone in TIMEZONES:
+            tz_row.set_selected(TIMEZONES.index(state.timezone))
+
+        def on_tz_selected(combo_row, _pspec):
+            state.timezone = TIMEZONES[combo_row.get_selected()]
+
+        tz_row.connect("notify::selected", on_tz_selected)
         group.add(tz_row)
 
         locale_model = Gtk.StringList.new(LOCALES)
         locale_row = Adw.ComboRow(title=tr(state, "locale.locale_row"), model=locale_model)
+        if state.locale in LOCALES:
+            locale_row.set_selected(LOCALES.index(state.locale))
+
+        def on_locale_selected(combo_row, _pspec):
+            state.locale = LOCALES[combo_row.get_selected()]
+
+        locale_row.connect("notify::selected", on_locale_selected)
         group.add(locale_row)
 
         return build_step_page(
