@@ -1,0 +1,24 @@
+[project]
+name = "corvid-installer"
+version = "0.1.0"
+description = "Corvid OS installer — GTK4 / libadwaita, modular wizard"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "PyGObject>=3.48",
+]
+
+[project.scripts]
+corvid-installer = "corvid_installer.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["corvid_installer*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
