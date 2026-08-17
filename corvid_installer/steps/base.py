@@ -54,6 +54,11 @@ class InstallStep:
     # language, with a crossfade instead of the usual step-to-step slide.
     request_language_refresh: "callable | None" = None
 
+    # Also set by the window. Closes the installer -- used by FinishStep's
+    # "stay in the live session" action, which has no other way to reach
+    # the window.
+    request_close: "callable | None" = None
+
     def build_widget(self, state: "InstallState") -> Gtk.Widget:
         raise NotImplementedError
 

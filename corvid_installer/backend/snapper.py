@@ -8,7 +8,12 @@ from corvid_installer.backend.chroot import run_in_chroot
 
 
 def init_snapper(mount_point: str, hourly: int, daily: int, weekly: int, monthly: int, dry_run: bool, log) -> None:
-    run_in_chroot(mount_point, ["snapper", "-c", "root", "create-config", "/"], dry_run, log)
+    # --no-dbus: arch-chroot doesn't run a D-Bus system bus (no systemd
+    # inside the chroot), and snapper defaults to talking to snapperd over
+    # DBus -- without this it fails with
+    # "Failure (org.freedesktop.DBus.Error.ServiceUnknown)". This is the
+    # standard fix for running snapper during a chroot install.
+    run_in_chroot(mount_point, ["snapper", "--no-dbus", "-c", "root", "create-config", "/"], dry_run, log)
 
     # /etc/snapper/configs/root is root-owned like anything else under the
     # target root -- run sed *inside* the chroot (as root, via run_in_chroot)

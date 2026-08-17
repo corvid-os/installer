@@ -6,7 +6,7 @@ never calls anything here."""
 import subprocess
 from pathlib import Path
 
-from corvid_installer.backend.priv import as_root
+from corvid_installer.backend.priv import run_root
 
 MOUNT_OPTS = "noatime,compress=zstd:1,space_cache=v2"
 
@@ -26,11 +26,7 @@ SUBVOLUME_MOUNTS = {
 
 
 def _run(cmd: list[str], dry_run: bool, log) -> None:
-    cmd = as_root(cmd)
-    log(f"$ {' '.join(cmd)}")
-    if dry_run:
-        return
-    subprocess.run(cmd, check=True)
+    run_root(cmd, dry_run=dry_run, log=log)
 
 
 def partition_path(disk: str, index: int) -> str:
@@ -74,7 +70,15 @@ def mount_layout(root_part: str, efi_part: str, mount_point: str = "/mnt", dry_r
 
 
 def unmount_all(mount_point: str = "/mnt", dry_run: bool = False, log=print) -> None:
-    _run(["umount", "-R", mount_point], dry_run, log)
+    # --lazy: this is the last step of the install, nothing downstream
+    # needs mount_point back. A plain `umount -R` can fail with "target is
+    # busy" here even after killing the obvious culprit (pacman-key's
+    # gpg-agent, see _stage_cleanup) -- something else can still be holding
+    # a handle open transiently. Lazy unmount detaches it from the
+    # filesystem tree immediately regardless; the kernel releases the
+    # underlying mount once whatever's left closes it, without blocking
+    # install completion on hunting down exactly what that was.
+    _run(["umount", "-R", "--lazy", mount_point], dry_run, log)
 
 
 def list_disks() -> list[str]:

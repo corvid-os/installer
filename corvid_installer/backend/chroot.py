@@ -3,17 +3,11 @@ enabling services. Encryption (LUKS) isn't wired up yet -- see run_install()
 in installer.py, which logs a clear warning and proceeds unencrypted if the
 user asked for it. Don't silently pretend it happened."""
 
-import subprocess
-
-from corvid_installer.backend.priv import as_root
+from corvid_installer.backend.priv import run_root
 
 
 def run_in_chroot(mount_point: str, command: list[str], dry_run: bool, log) -> None:
-    full = as_root(["arch-chroot", mount_point, *command])
-    log(f"$ {' '.join(full)}")
-    if dry_run:
-        return
-    subprocess.run(full, check=True)
+    run_root(["arch-chroot", mount_point, *command], dry_run=dry_run, log=log)
 
 
 def _write_file(path: str, content: str, mode: str, dry_run: bool, log) -> None:
@@ -24,10 +18,8 @@ def _write_file(path: str, content: str, mode: str, dry_run: bool, log) -> None:
     subprocess calls."""
     verb = "appending to" if mode == "a" else "writing to"
     log(f"$ ({verb} {path})")
-    if dry_run:
-        return
     tee_args = ["tee", "-a", path] if mode == "a" else ["tee", path]
-    subprocess.run(as_root(tee_args), input=content, text=True, check=True, stdout=subprocess.DEVNULL)
+    run_root(tee_args, dry_run=dry_run, log=lambda _msg: None, input=content)
 
 
 def set_timezone(mount_point: str, timezone: str, dry_run: bool, log) -> None:
@@ -47,8 +39,8 @@ def set_hostname(mount_point: str, hostname: str, dry_run: bool, log) -> None:
     _write_file(f"{mount_point}/etc/hostname", f"{hostname}\n", "w", dry_run, log)
 
 
-def create_user(mount_point: str, username: str, full_name: str, is_admin: bool, dry_run: bool, log) -> None:
-    cmd = ["useradd", "-m", "-c", full_name, "-s", "/usr/bin/bash"]
+def create_user(mount_point: str, username: str, full_name: str, is_admin: bool, dry_run: bool, log, shell: str = "/usr/bin/bash") -> None:
+    cmd = ["useradd", "-m", "-c", full_name, "-s", shell]
     if is_admin:
         cmd += ["-G", "wheel"]
     cmd.append(username)
@@ -64,11 +56,10 @@ def create_user(mount_point: str, username: str, full_name: str, is_admin: bool,
 
 def set_password(mount_point: str, username: str, password: str, dry_run: bool, log) -> None:
     log(f"$ echo '{username}:***' | arch-chroot {mount_point} chpasswd")
-    if dry_run:
-        return
-    subprocess.run(
-        as_root(["arch-chroot", mount_point, "chpasswd"]),
-        input=f"{username}:{password}\n", text=True, check=True,
+    run_root(
+        ["arch-chroot", mount_point, "chpasswd"],
+        dry_run=dry_run, log=lambda _msg: None,
+        input=f"{username}:{password}\n",
     )
 
 

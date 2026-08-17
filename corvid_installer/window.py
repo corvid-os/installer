@@ -59,6 +59,7 @@ class CorvidInstallerWindow(Adw.ApplicationWindow):
         step = self.steps[self.current_index]
         step.request_revalidate = self._update_next_sensitivity
         step.request_language_refresh = self._on_language_changed
+        step.request_close = self.close
         widget = step.build_widget(self.state)
 
         original_transition = self.content_stack.get_transition_type()

@@ -240,10 +240,6 @@ STRINGS: dict[str, dict[str, str]] = {
     "progress.step_title": {"en": "Installing", "pl": "Instalacja"},
     "progress.title": {"en": "Installing", "pl": "Instalacja"},
     "progress.subtitle": {"en": "Don't turn off your computer.", "pl": "Nie wyłączaj komputera."},
-    "progress.placeholder_log": {
-        "en": "(simulated — backend not implemented yet)",
-        "pl": "(symulacja — backend jeszcze niezaimplementowany)",
-    },
     "progress.done": {"en": "Done", "pl": "Gotowe"},
     "progress.complete_log": {
         "en": "Install (simulated) complete.",
@@ -284,9 +280,13 @@ STRINGS: dict[str, dict[str, str]] = {
     "finish.stay_title": {"en": "Stay in the live session", "pl": "Zostań w sesji live"},
     "finish.stay_subtitle": {"en": "Keep testing before you restart", "pl": "Testuj dalej, zanim zrestartujesz"},
     "finish.title": {"en": "Corvid OS is installed", "pl": "Corvid OS jest zainstalowany"},
-    "finish.subtitle": {
-        "en": "(simulated — this skeleton doesn't actually restart anything)",
-        "pl": "(symulacja — ten szkielet niczego faktycznie nie restartuje)",
+    "finish.subtitle_done": {
+        "en": "Remove the installation media before restarting.",
+        "pl": "Wyjmij nośnik instalacyjny przed ponownym uruchomieniem.",
+    },
+    "finish.subtitle_dry_run": {
+        "en": "(dry run — nothing was actually installed)",
+        "pl": "(symulacja — nic nie zostało faktycznie zainstalowane)",
     },
 }
 
